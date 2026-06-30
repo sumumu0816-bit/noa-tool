@@ -969,7 +969,7 @@ async function runGenerate() {
       "type_num": 1,
       "type_name": "ビフォーアフター型",
       "type_desc": "使う前後の変化を見せる",
-      "hook": "1/2【いちご式骨格】私の体験として語る（問いかけNG）。①具体的な悩み・困り事（事実ベース・感情込みOK）→②「これ使い始めてから」「これに変えてみたら」→③変化の驚き一言で止める（「なんか違う😅」「思ってたのと全然違った」「なんかよくなった気がする😅」等）。【重要】「解消された」「よくなった」等の解決を言いきらない。変化を示唆するだけで止める。商品名・種類名NG。1行15文字以内・空行でリズムを作る",
+      "hook": "1/2【いちご式骨格】私の体験として語る（問いかけNG）。①具体的な悩み・困り事（事実ベース・感情込みOK）→②「これ使い始めてから」「これに変えてみたら」→③変化の結果を伝えて止める（「〇〇が気にならなくなったよ」「朝まで〜できるようになった」「嘘みたいになくなった」系）。【重要】変化の「結果・感情」は伝えていい。「なぜ変わったか・商品の機能・詳細」はツリーへ。商品名・種類名NG。1行15文字以内・空行でリズムを作る",
       "body": "2/2【必須構成】①商品名 or 商品カテゴリ名から始める（例：「〇〇使い始めてから」「〇〇に変えてから」）②なぜ変わったか（具体的な理由・機能）③締め：[感情ひとこと／日常の変化／逆転オチ（「中々やめられないくらい」等）／〜が嘘みたい]のどれかを商品に合わせて選ぶ。末尾にpr",
       "point": "この型が効く一言理由（15字以内）"
     },
@@ -977,7 +977,7 @@ async function runGenerate() {
       "type_num": 2,
       "type_name": "悩み解決型",
       "type_desc": "悩みから共感→解決策として商品紹介",
-      "hook": "1/2【いちご式骨格】私の体験として語る。①具体的な手間・ストレスの悩み（「〇〇してて / 毎回ストレスだったんだけど、」「〇〇が悩みだったんだけど」系）→②「これに変えてから」→③変化の驚き・気づきで止める（「え、こんなに変わるの？😅」「使ってみてびっくりした」「全然違くてびっくりした😅」等）。【重要】「解消された」「よくなった」等の解決を言いきらない。答えはツリーに残す。商品名・種類名NG・1行15文字以内",
+      "hook": "1/2【いちご式骨格】私の体験として語る。①具体的な手間・ストレスの悩み（「〇〇してて / 毎回ストレスだったんだけど、」「〇〇が悩みだったんだけど」系）→②「これに変えてから」→③変化の驚き・気づきで止める（「え、こんなに違うの？😅」「全然違くてびっくりした」「気持ちが楽になった」系）。【重要】変化の「感情・気づき」は伝えていい。「なぜ変わったか・商品の機能・詳細」はツリーへ。商品名・種類名NG・1行15文字以内",
       "body": "2/2【必須構成】①商品名 or 商品カテゴリ名から始める②なぜ変わったか（面倒だったルーティンが消えた理由・具体的に）③締め：「ラクしたかっただけなんだけど〜」系の正直ひとこと。末尾にpr",
       "point": "この型が効く一言理由（15字以内）"
     },
@@ -1485,7 +1485,11 @@ JSONのみで返答（説明・マークダウン不要）:
   "posts": [${isOwned ? ownedTypes : notOwnedTypes}
   ]
 }
-必ず13型すべて出力すること。各型に "recommended": true/false を追加すること。この商品に最もフィットする型1〜2つだけ recommended: true にする。recommended: true の型には "recommended_reason": "理由（20字以内）" も追加すること。
+【重要・型選定ルール】
+・上記の型リストからこの商品に最適な3型だけを選ぶこと
+・選定基準：①商品の悩み・ベネフィットに最もマッチする ②似た切り口を重複させない（体験型・発見型・感情型など異なる角度を組み合わせる）
+・選んだ3型のみ投稿を生成すること（全型を出力しない）
+・各型に "select_reason": "この型を選んだ一言理由（15字以内）" を追加すること
 
 【型選びの基準】
 ・「怖い・憂鬱・後回し」感情がある商品 → ⑥お悩み解決型
@@ -1529,18 +1533,16 @@ function renderPosts(data) {
       <span class="product-tag cat">${esc(p.category)}</span>
       <span class="product-tag price">💴 ${esc(p.price_range)}</span>
     </div>
-    <div style="font-size:12px;color:var(--muted);">★の型がこの商品にいちばん合う型です</div>`;
+    <div style="font-size:12px;color:var(--muted);">この商品に最適な3型を選びました</div>`;
 
   const posts = data.posts || [];
-  const recommended = posts.filter(p => p.recommended);
-  const others = posts.filter(p => !p.recommended);
 
   const postCard = post => `
-    <div class="post-type-card type-${post.type_num}" style="${post.recommended ? 'border-color:var(--p);' : ''}">
+    <div class="post-type-card type-${post.type_num}" style="border-color:var(--p);">
       <div class="post-type-header">
         <div>
-          <div class="post-type-name">${post.recommended ? '★ ' : ''}${'①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬'[post.type_num - 1]} ${esc(post.type_name)}</div>
-          <div class="post-type-note">${esc(post.type_desc || '')}${post.recommended && post.recommended_reason ? ` — 💡 ${esc(post.recommended_reason)}` : ` — 💡 ${esc(post.point || '')}`}</div>
+          <div class="post-type-name">${'①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬'[post.type_num - 1]} ${esc(post.type_name)}</div>
+          <div class="post-type-note">${esc(post.type_desc || '')}${post.select_reason ? ` — 💡 ${esc(post.select_reason)}` : ''}</div>
         </div>
       </div>
       <div class="post-parts">
@@ -1558,14 +1560,8 @@ function renderPosts(data) {
       </div>
     </div>`;
 
-  const othersHtml = others.length ? `
-    <div style="margin-top:8px;">
-      <button onclick="this.nextElementSibling.style.display='block';this.style.display='none';" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;font-family:var(--font);font-size:13px;color:var(--muted);cursor:pointer;">他の型も見る（${others.length}型）▼</button>
-      <div style="display:none;">${others.map(postCard).join('')}</div>
-    </div>` : '';
-
   document.getElementById('postTypeList').innerHTML =
-    recommended.map(postCard).join('') + othersHtml;
+    posts.map(postCard).join('');
 
   // バンク保存ボタンを表示・状態を更新
   updateBankSaveBtn();
