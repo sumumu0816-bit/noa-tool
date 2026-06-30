@@ -831,6 +831,24 @@ JSONのみで返答（説明・マークダウン不要）:
       売り: ${esc(extractedProduct.selling_point)}`;
     info.classList.add('show');
 
+    // Step1.5: 商品名でリサーチして機能情報を自動補完
+    document.getElementById('imgLoadingTitle').textContent = '🔍 商品情報をリサーチ中...';
+    try {
+      const researched = await callGemini([{ text: `「${extractedProduct.name}」という商品について教えてください。
+楽天市場で販売されている日用品・暮らしグッズです。
+以下をJSONのみで返してください（説明・マークダウン不要）:
+{
+  "category": "正確なカテゴリ（例：衣類洗剤・掃除用品・収納グッズ・キッチン用品等、15字以内）",
+  "features": ["この商品が解決する読者の悩み（15字以内）","主な機能・効果（15字以内）","使って変わること（15字以内）"],
+  "selling_point": "最大の売りポイント（25字以内）",
+  "why_good": "暮らしの手間・ストレスをどう減らすか（30字以内）"
+}` }], 1000);
+      if (researched.category) extractedProduct.category = researched.category;
+      if (researched.features && researched.features.length) extractedProduct.features = researched.features;
+      if (researched.selling_point) extractedProduct.selling_point = researched.selling_point;
+      if (researched.why_good) extractedProduct.why_good = researched.why_good;
+    } catch(e) { /* リサーチ失敗時はスクショ情報で続行 */ }
+
     S.selectedProduct = extractedProduct;
 
     // Step2: 8型投稿文を生成
