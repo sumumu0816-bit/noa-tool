@@ -743,7 +743,20 @@ async function callGemini(parts, maxTokens = 6000) {
       const raw = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
       if (!raw) { lastError = '空のレスポンス（再試行してください）'; continue; }
       try {
-        return JSON.parse(raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim());
+        const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        // JSON文字列内の生の改行文字を\nにエスケープ
+        let fixed = '';
+        let inStr = false, esc = false;
+        for (let i = 0; i < cleaned.length; i++) {
+          const c = cleaned[i];
+          if (esc) { fixed += c; esc = false; }
+          else if (c === '\\') { fixed += c; esc = true; }
+          else if (c === '"') { fixed += c; inStr = !inStr; }
+          else if (inStr && c === '\n') { fixed += '\\n'; }
+          else if (inStr && c === '\r') { /* skip */ }
+          else { fixed += c; }
+        }
+        return JSON.parse(fixed);
       } catch(e) {
         throw new Error('結果の解析に失敗しました。再試行してください');
       }
